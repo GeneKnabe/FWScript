@@ -42,7 +42,7 @@ $IPTABLES -t nat -A POSTROUTING -o $INTERFACEEXT -j MASQUERADE
 #SSH ACCESS
 for i in SSHFORWARDIP; do
     for j in SSHFORWARDPORTFROMEXT; do
-        $IPTABLES -t NAT -A prerouting -p tcp -m tcp -i $INTERFACEEXT --dport $j DNAT --to-destination $i:22 
+        $IPTABLES -t NAT -A REROUTING -p tcp -m tcp -i $INTERFACEEXT --dport $j -j DNAT --to-destination $i:22 
     done
 done
 $IPTABLES --insert INPUT 1 -p tcp -s $NETALL -i $INTERFACEEXT --dport 22 -i $INTERFACEINT -j ACCEPT
