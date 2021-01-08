@@ -1,6 +1,4 @@
 #!/bin/bash
-#/usr/sbin/iptables -t nat -A POSTROUTING -o ens18 -j MASQUERADE
-#!/bin/bash
 
 echo "Checking the permission level"
 if [ "$EUID" -ne 0 ]
