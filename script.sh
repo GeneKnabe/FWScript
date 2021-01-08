@@ -1,4 +1,6 @@
 #!/bin/bash
+#/usr/sbin/iptables -t nat -A POSTROUTING -o ens18 -j MASQUERADE
+#!/bin/bash
 
 echo "Checking the permission level"
 if [ "$EUID" -ne 0 ]
@@ -52,6 +54,8 @@ for i in $SSHFORWARDIP; do
     $IPTABLES -t nat -A PREROUTING -p tcp -m tcp -i $INTERFACEEXT --dport ${SSHFORWARDPORTFROMEXT[$j]} -j DNAT --to-destination $i:22 
     j=$((j + 1))
 done
+$IPTABLES -A FORWARD -p tcp -i $INTERFACEEXT --dport 22 -o $INTERFACEINT -j ACCEPT
+$IPTABLES -A FORWARD -p tcp -i $INTERFACEINT --sport 22 -o $INTERFACEEXT -j ACCEPT
 
 #SSH for Router
 $IPTABLES --insert INPUT -p tcp -i $INTERFACEEXT --dport 22 -j ACCEPT
@@ -85,6 +89,15 @@ for i in $RDPFORWARDIP; do
     $IPTABLES -t nat -A PREROUTING -p tcp -m tcp -i $INTERFACEEXT --dport ${RDPFORWARDPORTFROMEXT[$j]} -j DNAT --to-destination $i:3389
     j=$((j + 1))
 done
+$IPTABLES -A FORWARD -p tcp -i $INTERFACEEXT --dport 3389 -o $INTERFACEINT -j ACCEPT
+$IPTABLES -A FORWARD -p tcp -i $INTERFACEINT --sport 3389 -o $INTERFACEEXT -j ACCEPT
+$IPTABLES -A FORWARD -p udp -i $INTERFACEEXT --dport 3389 -o $INTERFACEINT -j ACCEPT
+$IPTABLES -A FORWARD -p udp -i $INTERFACEINT --sport 3389 -o $INTERFACEEXT -j ACCEPT
+
+#Logging Dropped Packets
+$IPTABLES -A INPUT -j LOG --log-prefix "INPUT DROP: " --log-level 6
+$IPTABLES -A FORWARD -j LOG --log-prefix "FORWARD DROP: " --log-level 6
+$IPTABLES -A OUTPUT -j LOG --log-prefix "OUTPUT DROP: " --log-level 6
 
 $IPTABLES -P INPUT DROP
 $IPTABLES -P FORWARD DROP
@@ -127,6 +140,9 @@ echo "Firewall off (HE DED)"
 ;;
 
 fullblock)
+
+$IPTABLES -F
+$IPTABLES -F -t nat
 
 echo "Wenn die SSH Verbindung abbricht hast du erfolgreich deinen eigenen Ast abgesägt"
 
