@@ -139,10 +139,17 @@ echo "Firewall off (HE DED)"
 
 fullblock)
 
+echo "Wenn die SSH Verbindung abbricht hast du erfolgreich deinen eigenen Ast abgesägt"
+
+#Flush Tables
 $IPTABLES -F
 $IPTABLES -F -t nat
 
-echo "Wenn die SSH Verbindung abbricht hast du erfolgreich deinen eigenen Ast abgesägt"
+
+#Logging Dropped Packets
+$IPTABLES -A INPUT -j LOG --log-prefix "INPUT DROP: " --log-level 6
+$IPTABLES -A FORWARD -j LOG --log-prefix "FORWARD DROP: " --log-level 6
+$IPTABLES -A OUTPUT -j LOG --log-prefix "OUTPUT DROP: " --log-level 6
 
 $IPTABLES -P INPUT DROP
 $IPTABLES -P FORWARD DROP
